@@ -11,6 +11,14 @@ Terraform configuration for self-hosting [Langfuse](https://langfuse.com/) on Go
 ## Update Langfuse v2 to v3
 Our `main` branch will continuously support Langfuse v3. Langfuse v3 gained a solid and scalable architecture with the latest major update. You can also access v2 at `v0.0.1` tag.
 
+## Differences with the base repo
+1. Changes default locations of GCS bucket and Postgres instance to EU
+2. Enable the following API in the project
+    - Service Networking API
+    - Cloud Filestore API
+    - Google Cloud Memorystore for Redis API
+3. Change the IP config for the VPC as the project policies doesn't allow ipv4_enabled (SSL can be added for more security)
+
 ## Setup
 ### Features
 - Sreverless hosting on Cloud Run
@@ -72,8 +80,25 @@ Our `main` branch will continuously support Langfuse v3. Langfuse v3 gained a so
     bash ./docker/cloudbuild.sh <your-project-id> <your-region> langfuse-web-repo 3
     ```
 
+    Note: If you are working with Windows, probably executing the scripts will raise an error. In that case convert all .sh scripts to Unix format:
+    ```
+    dos2unix cloudbuild.sh
+    dos2unix down.sh
+    dos2unix up.sh
+    dos2unix drop.sh
+    ```
+
+    If pushing the image to the registry gives a permission error, you can upload manually the image:
+    ```
+    cd docker/web
+    docker build -t europe-west2-docker.pkg.dev/<gcp_project>/langfuse-web-repo/langfuse/langfuse:3 . --no-cache
+    docker push europe-west2-docker.pkg.dev/<gcp_project>/langfuse-web-repo/langfuse/langfuse:3
+    ```
+    (change the project_id with yours)
+
 7. Migrate Terraform state to GCS
     ```
+    cd ../../terraform/google/environments/dev
     terraform init -migrate-state
     ```
     - Then generate `backend.tf` and have Terraform state managed by a GCS bucket

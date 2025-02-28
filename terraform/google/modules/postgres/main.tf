@@ -33,7 +33,7 @@ resource "google_sql_database_instance" "postgres_instance" {
       }
 
       enabled                        = true
-      location                       = "asia"
+      location                       = "eu"
       point_in_time_recovery_enabled = true
       start_time                     = "21:00"
       transaction_log_retention_days = 7
@@ -45,8 +45,9 @@ resource "google_sql_database_instance" "postgres_instance" {
     disk_type             = "PD_SSD"
 
     ip_configuration {
-      ipv4_enabled    = true
+      ipv4_enabled    = false
       private_network = "projects/${var.project_id}/global/networks/${var.network_name}"
+      # ssl_mode        = "ENCRYPTED_ONLY"  // enable this for extra security
     }
 
     location_preference {

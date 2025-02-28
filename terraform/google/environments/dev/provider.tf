@@ -1,6 +1,6 @@
 resource "google_storage_bucket" "default" {
   name     = "${var.project_id}_tfstate"
-  location = "ASIA"
+  location = "EU"
 
   force_destroy               = false
   public_access_prevention    = "enforced"

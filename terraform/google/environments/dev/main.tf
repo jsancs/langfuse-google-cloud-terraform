@@ -24,7 +24,7 @@ locals {
     LANGFUSE_S3_MEDIA_UPLOAD_PREFIX                 = "media/"
     LANGFUSE_INGESTION_QUEUE_DELAY_MS               = ""
     LANGFUSE_INGESTION_CLICKHOUSE_WRITE_INTERVAL_MS = ""
-    REDIS_CONNECTION_STRING                         = "redis://default@${module.redis.redis_host}:${module.redis.redis_port}/0"
+    REDIS_CONNECTION_STRING                         = "redis://${module.redis.redis_host}:${module.redis.redis_port}"
   }
 
   env_web = merge(local.env_worker, {
@@ -105,6 +105,8 @@ module "redis" {
   project_id   = var.project_id
   region       = var.region
   network_name = module.vpc.network_name
+
+  depends_on = [google_project_service.required_apis]
 }
 
 module "postgres" {
@@ -118,6 +120,8 @@ module "postgres" {
     POSTGRES_USER     = "postgres"
     POSTGRES_PASSWORD = "postgres"
   }
+
+  depends_on = [google_project_service.required_apis]
 }
 
 module "regstry" {
@@ -135,4 +139,21 @@ module "vpc" {
   source = "../../modules/vpc"
 
   region = var.region
+
+  depends_on = [google_project_service.required_apis]
+}
+
+# Enable required GCP APIs not enabled by default
+resource "google_project_service" "required_apis" {
+  for_each = toset([
+    "servicenetworking.googleapis.com",  # Service Networking API
+    "file.googleapis.com",               # Cloud Filestore API
+    "redis.googleapis.com",              # Google Cloud Memorystore for Redis API
+  ])
+
+  project = var.project_id
+  service = each.key
+
+  disable_dependent_services = false
+  disable_on_destroy         = false
 }
